@@ -1,0 +1,12 @@
+# Cracked screen dataset (Roboflow: abhinavpoc/cracked-screen)
+# Classes: cracked_screenrotation, damagedrotation, goodrotation
+#
+# Prepare data first: python tools/prepare_cracked_screen_dataset.py
+# Then train: python yolo/lazy.py task=train dataset=cracked_screen task.data.batch_size=8
+
+path: data/cracked_screen
+train: train
+validation: valid
+
+class_num: 3
+class_list: ['cracked_screenrotation', 'damagedrotation', 'goodrotation']

@@ -148,3 +148,6 @@ node_modules/
 
 # Not ignore image for demo
 !demo/images/*/*.png
+/Cracked Screen.v1i.yolov9.zip
+/Cracked Screen.v1i.yolov9/valid/labels
+/Cracked Screen.v1i.yolov9/train/labels

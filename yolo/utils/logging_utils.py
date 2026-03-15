@@ -106,7 +106,7 @@ class YOLORichProgressBar(RichProgressBar):
         epoch_descript = "[cyan]Train [white]|"
         batch_descript = "[green]Batch [white]|"
         metrics = self.get_metrics(trainer, pl_module)
-        metrics.pop("v_num")
+        metrics.pop("v_num", None)
         for metrics_name, metrics_val in metrics.items():
             if "Loss_step" in metrics_name:
                 epoch_descript += f"{metrics_name.removesuffix('_step').split('/')[1]: ^9}|"
@@ -157,7 +157,8 @@ class YOLORichProgressBar(RichProgressBar):
         self.past_results.append((trainer.current_epoch, ap_main))
 
     @override
-    def refresh(self) -> None:
+    def refresh(self, **kwargs) -> None:
+        # Lightning may call refresh(hard=...); accept and ignore for compatibility
         if self.progress:
             self.progress.refresh()
 
@@ -288,7 +289,16 @@ def setup(cfg: Config):
         loggers.append(TensorBoardLogger(log_graph="all", save_dir=save_path))
     if cfg.use_wandb:
         wandb_cfg = OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
-        loggers.append(WandbLogger(project="YOLO", name=cfg.name, save_dir=save_path, id=None, config=wandb_cfg))
+        loggers.append(
+            WandbLogger(
+                project="YOLO",
+                name=cfg.name,
+                save_dir=save_path,
+                id=None,
+                config=wandb_cfg,
+                mode="offline",  # avoid interactive login prompt; run `wandb sync` later to upload
+            )
+        )
 
     return progress, loggers, save_path
 

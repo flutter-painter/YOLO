@@ -1,0 +1,17 @@
+# Template for training YOLOv9 on your custom photo dataset.
+# Copy this file, rename it (e.g. mydata.yaml), then run:
+#   python yolo/lazy.py task=train dataset=mydata
+#
+# Dataset layout (choose one):
+#   A) COCO: annotations/instances_train.json, instances_val.json; images/train/, images/val/
+#   B) YOLO .txt: images/train/, images/val/ and labels/train/, labels/val/ (one .txt per image)
+
+path: data/custom
+train: train
+validation: val
+
+class_num: 1
+class_list: ['object']
+
+# Remove or leave empty; only used for auto-download datasets
+# auto_download:

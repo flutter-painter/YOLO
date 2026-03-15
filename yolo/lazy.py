@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 import hydra
+import torch
 from lightning import Trainer
 
 project_root = Path(__file__).resolve().parent.parent
@@ -14,6 +15,10 @@ from yolo.utils.logging_utils import setup
 
 @hydra.main(config_path="config", config_name="config", version_base=None)
 def main(cfg: Config):
+    # Use Tensor Cores on supported GPUs (e.g. RTX 4070) for better performance
+    if torch.cuda.is_available():
+        torch.set_float32_matmul_precision("medium")
+
     callbacks, loggers, save_path = setup(cfg)
 
     trainer = Trainer(

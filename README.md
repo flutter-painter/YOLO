@@ -1,5 +1,12 @@
 # YOLO: Official Implementation of YOLOv9, YOLOv7, YOLO-RD
 
+
+python3 yolo/lazy.py task=train dataset=cracked_screen use_wandb=False
+
+python3 yolo/lazy.py task=train dataset=cracked_screen task.epoch=150 task.data.batch_size=8 use_wandb=False
+
+***
+
 [![Documentation Status](https://readthedocs.org/projects/yolo-docs/badge/?version=latest)](https://yolo-docs.readthedocs.io/en/latest/?badge=latest)
 ![GitHub License](https://img.shields.io/github/license/WongKinYiu/YOLO)
 
