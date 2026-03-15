@@ -1,9 +1,14 @@
 # YOLO: Official Implementation of YOLOv9, YOLOv7, YOLO-RD
 
-
-python3 yolo/lazy.py task=train dataset=cracked_screen use_wandb=False
-
+train
+``` bash
 python3 yolo/lazy.py task=train dataset=cracked_screen task.epoch=150 task.data.batch_size=8 use_wandb=False
+```
+
+infer
+``` bash
+python yolo/lazy.py task=inference dataset=cracked_screen weight=runs/train/<name>/last.ckpt task.data.source=<INPUT>
+```
 
 ***
 

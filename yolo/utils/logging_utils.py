@@ -23,7 +23,7 @@ import wandb
 from lightning import LightningModule, Trainer, seed_everything
 from lightning.pytorch.callbacks import Callback, ModelCheckpoint, RichModelSummary, RichProgressBar
 from lightning.pytorch.callbacks.progress.rich_progress import CustomProgress
-from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
+from lightning.pytorch.loggers import CSVLogger, TensorBoardLogger, WandbLogger
 from lightning.pytorch.utilities import rank_zero_only
 from omegaconf import ListConfig, OmegaConf
 from rich import get_console, reconfigure
@@ -312,6 +312,10 @@ def setup(cfg: Config):
                 mode="offline",  # avoid interactive login prompt; run `wandb sync` later to upload
             )
         )
+    # When no logger is configured (e.g. use_wandb=False), Lightning warns on self.log(..., logger=True).
+    # Add a minimal CSV logger so metrics (LR, momentum, etc.) have a sink and warnings are avoided.
+    if not loggers and cfg.task.task == "train":
+        loggers.append(CSVLogger(save_dir=save_path, name="logs"))
 
     return progress, loggers, save_path
 
@@ -345,10 +349,19 @@ def log_model_structure(model: Union[ModuleList, YOLOLayer, YOLO]):
 
 @rank_zero_only
 def validate_log_directory(cfg: Config, exp_name: str) -> Path:
-    base_path = Path(cfg.out_path, cfg.task.task)
-    save_path = base_path / exp_name
+    # When running under Hydra, use its output dir so logs/checkpoints land in runs/train/name
+    # at project root. Otherwise Hydra has already set cwd to that dir and relative "runs/..."
+    # would create nested runs/train/name/runs/train/name.
+    use_hydra_dir = False
+    try:
+        from hydra.core.hydra_config import HydraConfig
+        save_path = Path(HydraConfig.get().runtime.output_dir).resolve()
+        use_hydra_dir = True
+    except Exception:
+        save_path = (Path(cfg.out_path) / cfg.task.task / exp_name).resolve()
 
-    if not cfg.exist_ok:
+    if not use_hydra_dir and not cfg.exist_ok:
+        base_path = (Path(cfg.out_path) / cfg.task.task).resolve()
         index = 1
         old_exp_name = exp_name
         while save_path.is_dir():

@@ -15,15 +15,30 @@ from yolo.utils.logging_utils import setup
 
 @hydra.main(config_path="config", config_name="config", version_base=None)
 def main(cfg: Config):
+    # Prefer CUDA when available (resolve "auto" to explicit GPU)
+    accelerator = getattr(cfg, "accelerator", "auto")
+    devices = getattr(cfg, "device", "auto")
+    if (accelerator == "auto" or str(accelerator).lower() == "auto") and (
+        devices == "auto" or str(devices).lower() == "auto"
+    ):
+        if torch.cuda.is_available():
+            accelerator = "gpu"
+            devices = 1  # use first GPU; override with device=[0,1] etc. for multi-GPU
+        else:
+            accelerator = "cpu"
+            devices = 1
+
     # Use Tensor Cores on supported GPUs (e.g. RTX 4070) for better performance
     if torch.cuda.is_available():
         torch.set_float32_matmul_precision("medium")
+        # Avoid cuDNN "Plan failed / CUDNN_STATUS_NOT_SUPPORTED" warnings on some GPU/driver combos.
+        torch.backends.cudnn.benchmark = False
 
     callbacks, loggers, save_path = setup(cfg)
 
     trainer = Trainer(
-        accelerator=getattr(cfg, "accelerator", "auto"),
-        devices=cfg.device,
+        accelerator=accelerator,
+        devices=devices,
         max_epochs=getattr(cfg.task, "epoch", None),
         precision="16-mixed",
         callbacks=callbacks,

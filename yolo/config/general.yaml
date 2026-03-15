@@ -1,3 +1,4 @@
+# auto = use CUDA (GPU) when available, else CPU. Override with device=cpu or device=[0,1] for multi-GPU.
 accelerator: auto
 device: auto
 cpu_num: 16
